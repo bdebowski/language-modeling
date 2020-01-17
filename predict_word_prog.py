@@ -2,6 +2,7 @@ from word_predictor import WordPredictor
 
 
 class PredictWordProg:
+    "test"
     def __init__(self):
         self.text = ""
 
