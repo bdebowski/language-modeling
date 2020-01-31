@@ -1,7 +1,6 @@
 import os
 
-from src.word_predictor import WordPredictor
-from src.model_factory import ModelName
+from src.word_predictor.iword_predictor_factory import ModelName, IWordPredictorFactory
 
 
 class PredictWordProg:
@@ -54,4 +53,4 @@ class PredictWordProg:
 
 
 if __name__ == "__main__":
-    PredictWordProg().run(WordPredictor(ModelName.DISTILBERT))
+    PredictWordProg().run(IWordPredictorFactory().create_from_name(ModelName.BERT_UNCASED))
