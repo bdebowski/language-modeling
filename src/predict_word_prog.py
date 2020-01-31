@@ -53,4 +53,4 @@ class PredictWordProg:
 
 
 if __name__ == "__main__":
-    PredictWordProg().run(IWordPredictorFactory().create_from_name(ModelName.BERT_UNCASED))
+    PredictWordProg().run(IWordPredictorFactory().create_from_name(ModelName.BERT_LARGE_CASED))
