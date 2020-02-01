@@ -8,11 +8,6 @@ class PredictWordProg:
         self._text_history = ""
 
     def run(self, word_predictor):
-        """
-
-        :param word_predictor:
-        :return:
-        """
         word_predictor.feed("")
         while True:
             self.display(word_predictor.top_n_next(10))

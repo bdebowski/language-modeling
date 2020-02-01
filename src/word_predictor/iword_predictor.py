@@ -3,7 +3,7 @@ from abc import abstractmethod, ABC
 
 class IWordPredictor(ABC):
     @abstractmethod
-    def feed(self, text):
+    def feed(self, text, **kwargs):
         """
         Feed the text provided to the underlying model.
         """

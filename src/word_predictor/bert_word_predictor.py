@@ -22,10 +22,14 @@ class BertWordPredictor:
         self._re_sep_required = re.compile(r"([\.\?;])(\s|$)")
         self._re_sep_repl_str = r"\1 {} ".format(tokenizer.sep_token)
 
-    def feed(self, text):
+    def feed(self, text, **kwargs):
+        try:
+            segment_id = kwargs["segment_id"]
+        except KeyError:
+            segment_id = 0
+
         # Tokenize text and insert SEP token after each/any sentence terminating character.
         tokenized_text = self._tokenizer.tokenize(self._re_sep_required.sub(self._re_sep_repl_str, text))
-        #tokenized_text = self._tokenizer.tokenize(text)
 
         # Convert tokens to their ids and append to memory
         text_token_ids = self._tokenizer.convert_tokens_to_ids(tokenized_text)
@@ -38,15 +42,11 @@ class BertWordPredictor:
         token_ids_to_feed = self._token_ids_memory.retrieve()
         token_ids_to_feed.append(self._tokenizer.mask_token_id)
 
-        # DEBUG
-        #print(self._tokenizer.convert_ids_to_tokens(token_ids_to_feed))
-
         # Convert to tensor and push to GPU
         tokens_tensor = torch.tensor([token_ids_to_feed]).to("cuda")
 
         # BERT uses A/B segments.  We have to assign the tokens to the A or B segment.
-        # We will assign all tokens to the A segment.
-        segment_ids = [0] * len(token_ids_to_feed)
+        segment_ids = [segment_id] * len(token_ids_to_feed)
         segments_tensor = torch.tensor([segment_ids]).to("cuda")
 
         # Feed forward all the tokens
