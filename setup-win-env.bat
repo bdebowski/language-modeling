@@ -1,0 +1,2 @@
+set PYTHONPATH=%PYTHONPATH%;%CD%
+conda activate TRANSFORMERS

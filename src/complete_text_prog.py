@@ -17,7 +17,7 @@ class PredictWordProg:
             word_predictor.feed(self._read_user_input())
 
             # pick how many sentences to generate
-            num_sentences = 3
+            num_sentences = 1
 
             sentences = []
             for i in range(num_sentences):
@@ -56,7 +56,7 @@ class PredictWordProg:
             word_predictor.feed(word)
 
             # repeat until word is a sentence terminator
-            if word in {".", ";", "?", ",", "-"} or word.endswith(";") or word.endswith(","):
+            if word in {".", ";", "?"} or word.endswith(";"):
                 term = word if word != "-" else " -"
                 return " ".join(words) + term
 

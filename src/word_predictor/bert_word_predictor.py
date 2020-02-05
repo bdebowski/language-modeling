@@ -10,13 +10,17 @@ class BertWordPredictor:
     _INDEX_BATCH = 0
     _INDEX_FINAL_TOKEN = -1
 
+    _NUM_APPENDED_MASKS_MIN = 5
+    _NUM_APPENDED_MASKS_MAX = 5
+
     def __init__(self, tokenizer, model, mem_length=512):
         self._tokenizer = tokenizer
         self._lm = model
-        self._lm_hidden_states = None
+        self._lm_output_states = [None] * (self._NUM_APPENDED_MASKS_MAX - self._NUM_APPENDED_MASKS_MIN + 1)
 
-        # mem_length - 1 because we will always append a [MASK] token in each forward feed.
-        self._token_ids_memory = RotatingSequence(mem_length - 1)
+        # mem_length - _NUM_APPENDED_MASKS_MAX because we will always append up to _NUM_APPENDED_MASKS_MAX [MASK]
+        # tokens in each forward feed.
+        self._token_ids_memory = RotatingSequence(mem_length - self._NUM_APPENDED_MASKS_MAX)
         self._token_ids_memory.insert(tokenizer.sep_token_id)
 
         self._re_sep_required = re.compile(r"([\.\?;])(\s|$)")
@@ -37,26 +41,27 @@ class BertWordPredictor:
             self._token_ids_memory.insert(token_id)
 
         # The complete tokenized text fed to the model each time is the concatenation of:
-        # previously fed tokens + tokenized text + MASK token
-        # the number of tokens fed are limited to mem_length
-        token_ids_to_feed = self._token_ids_memory.retrieve()
-        token_ids_to_feed.append(self._tokenizer.mask_token_id)
+        # previously fed tokens + tokenized text + m x MASK tokens; total number of tokens fed is limited to mem_length
+        # We perform n iterations of feeding to the model, changing m at each iteration.
+        # We average the word predictions across the n iterations.
+        for n in range(self._NUM_APPENDED_MASKS_MAX - self._NUM_APPENDED_MASKS_MIN + 1):
+            token_ids_to_feed = self._token_ids_memory.retrieve() + [self._tokenizer.mask_token_id] * (self._NUM_APPENDED_MASKS_MIN + n)
 
-        # Convert to tensor and push to GPU
-        tokens_tensor = torch.tensor([token_ids_to_feed]).to("cuda")
+            # Convert to tensor and push to GPU
+            tokens_tensor = torch.tensor([token_ids_to_feed]).to("cuda")
 
-        # BERT uses A/B segments.  We have to assign the tokens to the A or B segment.
-        segment_ids = [segment_id] * len(token_ids_to_feed)
-        segments_tensor = torch.tensor([segment_ids]).to("cuda")
+            # BERT uses A/B segments.  We have to assign the tokens to the A or B segment.
+            segment_ids = [segment_id] * len(token_ids_to_feed)
+            segments_tensor = torch.tensor([segment_ids]).to("cuda")
 
-        # Feed forward all the tokens
-        with torch.no_grad():   # todo: performance: repeated context creation/destruction
-            self._lm_hidden_states = self._lm(tokens_tensor, token_type_ids=segments_tensor)
+            # Feed forward all the tokens
+            with torch.no_grad():   # todo: performance: repeated context creation/destruction
+                self._lm_output_states[n] = self._lm(tokens_tensor, token_type_ids=segments_tensor)[self._INDEX_FINAL_LAYER][self._INDEX_BATCH][-self._NUM_APPENDED_MASKS_MIN - n]
 
     def top_n_next(self, n):
         top_n = torch.topk(
             torch.softmax(
-                self._lm_hidden_states[self._INDEX_FINAL_LAYER][self._INDEX_BATCH][self._INDEX_FINAL_TOKEN],
+                torch.sum(torch.stack(self._lm_output_states), dim=0),
                 0,
                 torch.float32),
             n)

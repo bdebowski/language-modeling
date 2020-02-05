@@ -29,7 +29,7 @@ class IWordPredictorFactory:
         model.eval()
         model.to("cuda")
 
-        return BertWordPredictor(tokenizer, model, mem_length=512)
+        return BertWordPredictor(tokenizer, model, mem_length=256)
 
     @staticmethod
     def _create_bert_large_cased():
@@ -38,4 +38,4 @@ class IWordPredictorFactory:
         model.eval()
         model.to("cuda")
 
-        return BertWordPredictor(tokenizer, model, mem_length=512)
+        return BertWordPredictor(tokenizer, model, mem_length=256)
