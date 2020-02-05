@@ -3,9 +3,10 @@ import re
 import torch
 
 from src.util.rotating_sequence import RotatingSequence
+from src.word_predictor.iword_predictor import IWordPredictor
 
 
-class BertWordPredictor:
+class BertWordPredictor(IWordPredictor):
     _INDEX_FINAL_LAYER = 0
     _INDEX_BATCH = 0
     _INDEX_FINAL_TOKEN = -1
