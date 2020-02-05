@@ -60,6 +60,9 @@ class BertWordPredictor(IWordPredictor):
                 self._lm_output_states[n] = self._lm(tokens_tensor, token_type_ids=segments_tensor)[self._INDEX_FINAL_LAYER][self._INDEX_BATCH][-self._NUM_APPENDED_MASKS_MIN - n]
 
     def top_n_next(self, n):
+        # debugging
+        #print(self._tokenizer.convert_ids_to_tokens(self._token_ids_memory.retrieve()))
+
         top_n = torch.topk(
             torch.softmax(
                 torch.sum(torch.stack(self._lm_output_states), dim=0),

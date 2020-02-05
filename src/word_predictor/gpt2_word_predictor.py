@@ -16,7 +16,7 @@ class Gpt2WordPredictor(IWordPredictor):
 
     def feed(self, text, **kwargs):
         # todo: how to handle new lines?
-        prefix_space = self._past is not None
+        prefix_space = text.startswith(" ")
 
         tokens = self._tokenizer.encode(text, add_prefix_space=prefix_space)
         #for t in tokens:

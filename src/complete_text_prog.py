@@ -57,11 +57,12 @@ class PredictWordProg:
 
             # repeat until word is a sentence terminator
             if word in {".", ";", "?"} or word.endswith(";"):
-                term = word if word != "-" else " -"
-                return " ".join(words) + term
+                return " ".join(words) + word
 
-            # add word to sentence words if not done
-            words.append(word)
+            # Add word to sentence words if not done.
+            # Some models, like GPT2, encode/decode with a leading space.  Let's strip any such spaces and create them
+            # explicitly when displaying text.
+            words.append(word.strip())
 
     @staticmethod
     def _read_user_input():
@@ -69,4 +70,4 @@ class PredictWordProg:
 
 
 if __name__ == "__main__":
-    PredictWordProg().run(IWordPredictorFactory().create_from_name(ModelName.BERT_LARGE_CASED))
+    PredictWordProg().run(IWordPredictorFactory().create_from_name(ModelName.GPT2))
