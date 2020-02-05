@@ -5,37 +5,47 @@ from src.util.rotating_sequence import RotatingSequence
 
 
 class Gpt2WordPredictor(IWordPredictor):
-    def __init__(self, tokenizer, model):
+    def __init__(self, tokenizer, model, use_past=False, mem_length=256):
         self._tokenizer = tokenizer
         self._lm = model
         self._past = None
         self._model_output = None
 
-        # For debugging
-        #self._tokens_history = RotatingSequence(256)
+        self._use_past = use_past
+        if not use_past:
+            self._tokens_history = RotatingSequence(mem_length)
 
     def feed(self, text, **kwargs):
+        if not text:
+            return
+
         # todo: how to handle new lines?
         prefix_space = text.startswith(" ")
 
         tokens = self._tokenizer.encode(text, add_prefix_space=prefix_space)
-        #for t in tokens:
-        #    self._tokens_history.insert(t)
 
-        tokens_tensor = torch.tensor([tokens]).to("cuda")
-        self._model_output, self._past = self._lm(tokens_tensor, past=self._past)
+        if self._use_past:
+            tokens_tensor = torch.tensor([tokens]).to("cuda")
+            self._model_output, self._past = self._lm(tokens_tensor, past=self._past)
+        else:
+            for t in tokens:
+                self._tokens_history.insert(t)
+            with torch.no_grad():
+                tokens_tensor = torch.tensor([self._tokens_history.retrieve()]).to("cuda")
+                self._model_output = self._lm(tokens_tensor)
 
     def top_n_next(self, n):
-        # debugging
-        #print(self._tokenizer.decode(self._tokens_history.retrieve()))
-
         i_layer = 0
+        i_batch = 0
         i_final_token = -1
 
-        if len(self._model_output.size()) == 2:
-            p = self._model_output[i_layer]
+        if self._use_past:
+            if len(self._model_output.size()) == 2:
+                p = self._model_output[i_layer]
+            else:
+                p = self._model_output[i_layer][i_final_token]
         else:
-            p = self._model_output[i_layer][i_final_token]
+            p = self._model_output[i_layer][i_batch][-1]
 
         top_n = torch.topk(torch.softmax(p, 0, torch.float32), n)
 

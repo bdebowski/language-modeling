@@ -70,4 +70,4 @@ class PredictWordProg:
 
 
 if __name__ == "__main__":
-    PredictWordProg().run(IWordPredictorFactory().create_from_name(ModelName.GPT2))
+    PredictWordProg().run(IWordPredictorFactory().create_from_name(ModelName.GPT2_MEDIUM))
