@@ -11,6 +11,8 @@ class ModelName(Enum):
     BERT_LARGE_CASED = 2
     GPT2 = 3
     GPT2_MEDIUM = 4
+    GPT2_LARGE = 5
+    GPT2_XLARGE = 6
 
 
 class IWordPredictorFactory:
@@ -19,7 +21,9 @@ class IWordPredictorFactory:
             ModelName.BERT_UNCASED: IWordPredictorFactory._create_bert_uncased,
             ModelName.BERT_LARGE_CASED: IWordPredictorFactory._create_bert_large_cased,
             ModelName.GPT2: IWordPredictorFactory._create_gpt2,
-            ModelName.GPT2_MEDIUM: IWordPredictorFactory._create_gpt2_medium}
+            ModelName.GPT2_MEDIUM: IWordPredictorFactory._create_gpt2_medium,
+            ModelName.GPT2_LARGE: IWordPredictorFactory._create_gpt2_large,
+            ModelName.GPT2_XLARGE: IWordPredictorFactory._create_gpt2_xlarge}
 
     def create_from_name(self, model_name: ModelName):
         """
@@ -58,6 +62,24 @@ class IWordPredictorFactory:
     def _create_gpt2_medium():
         tokenizer = GPT2Tokenizer.from_pretrained("gpt2-medium")
         model = GPT2LMHeadModel.from_pretrained("gpt2-medium")
+        model.eval()
+        model.to("cuda")
+
+        return Gpt2WordPredictor(tokenizer, model)
+
+    @staticmethod
+    def _create_gpt2_large():
+        tokenizer = GPT2Tokenizer.from_pretrained("gpt2-large")
+        model = GPT2LMHeadModel.from_pretrained("gpt2-large")
+        model.eval()
+        model.to("cuda")
+
+        return Gpt2WordPredictor(tokenizer, model)
+
+    @staticmethod
+    def _create_gpt2_xlarge():
+        tokenizer = GPT2Tokenizer.from_pretrained("gpt2-xl")
+        model = GPT2LMHeadModel.from_pretrained("gpt2-xl")
         model.eval()
         model.to("cuda")
 
