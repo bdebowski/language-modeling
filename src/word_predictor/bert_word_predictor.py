@@ -27,6 +27,10 @@ class BertWordPredictor(IWordPredictor):
         self._re_sep_required = re.compile(r"([\.\?;])(\s|$)")
         self._re_sep_repl_str = r"\1 {} ".format(tokenizer.sep_token)
 
+    @property
+    def prepends_spaces(self):
+        return False
+
     def feed(self, text, **kwargs):
         try:
             segment_id = kwargs["segment_id"]

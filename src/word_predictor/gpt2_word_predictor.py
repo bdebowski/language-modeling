@@ -6,6 +6,10 @@ from src.util.rotating_sequence import RotatingSequence
 
 class Gpt2WordPredictor(IWordPredictor):
     def __init__(self, tokenizer, model, use_past=False, mem_length=256):
+        """
+        use_past=True will speed up inference at the cost of higher memory consumption.  Set to False to avoid out of
+        memory errors occurring after repeated forward feeds to the model.
+        """
         self._tokenizer = tokenizer
         self._lm = model
         self._past = None
@@ -14,6 +18,10 @@ class Gpt2WordPredictor(IWordPredictor):
         self._use_past = use_past
         if not use_past:
             self._tokens_history = RotatingSequence(mem_length)
+
+    @property
+    def prepends_spaces(self):
+        return True
 
     def feed(self, text, **kwargs):
         if not text:

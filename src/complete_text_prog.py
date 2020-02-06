@@ -1,4 +1,5 @@
 import random
+import re
 
 from src.word_predictor.iword_predictor_factory import ModelName, IWordPredictorFactory
 
@@ -6,6 +7,7 @@ from src.word_predictor.iword_predictor_factory import ModelName, IWordPredictor
 class PredictWordProg:
     def __init__(self):
         self._text_history = ""
+        self._re_sentence_termination = re.compile(r"[\.\?!]($|\"|')")
 
     def run(self, word_predictor):
         # Show starting message
@@ -17,7 +19,7 @@ class PredictWordProg:
             word_predictor.feed(self._read_user_input())
 
             # pick how many sentences to generate
-            num_sentences = 1
+            num_sentences = 2
 
             sentences = []
             for i in range(num_sentences):
@@ -33,8 +35,7 @@ class PredictWordProg:
         print(" ".join(sentences))
         print("")
 
-    @staticmethod
-    def _generate_sentence(word_predictor):
+    def _generate_sentence(self, word_predictor):
         words = []
         while True:
             # predict top n next words and their likelihoods
@@ -56,13 +57,12 @@ class PredictWordProg:
             word_predictor.feed(word)
 
             # repeat until word is a sentence terminator
-            if word in {".", ";", "?"} or word.endswith(";"):
-                return " ".join(words) + word
+            if self._re_sentence_termination.search(word):
+                join_char = "" if word_predictor.prepends_spaces else " "
+                return join_char.join(words) + word
 
             # Add word to sentence words if not done.
-            # Some models, like GPT2, encode/decode with a leading space.  Let's strip any such spaces and create them
-            # explicitly when displaying text.
-            words.append(word.strip())
+            words.append(word)
 
     @staticmethod
     def _read_user_input():
@@ -70,4 +70,4 @@ class PredictWordProg:
 
 
 if __name__ == "__main__":
-    PredictWordProg().run(IWordPredictorFactory().create_from_name(ModelName.GPT2_MEDIUM))
+    PredictWordProg().run(IWordPredictorFactory().create_from_name(ModelName.BERT_LARGE_CASED))

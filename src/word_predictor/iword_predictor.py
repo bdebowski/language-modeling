@@ -1,7 +1,15 @@
-from abc import abstractmethod, ABC
+from abc import abstractmethod, abstractproperty, ABC
 
 
 class IWordPredictor(ABC):
+    @property
+    @abstractmethod
+    def prepends_spaces(self):
+        """
+        True if the word predictor prepends spaces to complete words it generates
+        """
+        pass
+
     @abstractmethod
     def feed(self, text, **kwargs):
         """
