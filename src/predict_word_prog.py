@@ -7,13 +7,13 @@ class PredictWordProg:
     def __init__(self):
         self._text_history = ""
 
-    def run(self, word_predictor):
+    def run(self, word_predictor, num_words=10):
         print("<Enter some text to get started...>")
         text = self.read_user_input()
         self._text_history = text
         word_predictor.feed(text)
         while True:
-            self.display(word_predictor.top_n_next(10))
+            self.display(word_predictor.top_n_next(num_words))
             text = self.read_user_input()
             self._text_history += text
             word_predictor.feed(text)
@@ -48,4 +48,4 @@ class PredictWordProg:
 
 
 if __name__ == "__main__":
-    PredictWordProg().run(IWordPredictorFactory().create_from_name(ModelName.GPT2))
+    PredictWordProg().run(IWordPredictorFactory().create_from_name(ModelName.GPT2_LARGE), 100)
