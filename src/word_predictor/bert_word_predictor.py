@@ -14,9 +14,10 @@ class BertWordPredictor(IWordPredictor):
     _NUM_APPENDED_MASKS_MIN = 5
     _NUM_APPENDED_MASKS_MAX = 5
 
-    def __init__(self, tokenizer, model, mem_length=512):
+    def __init__(self, tokenizer, model, device=None, mem_length=512):
         self._tokenizer = tokenizer
         self._lm = model
+        self._device = device
         self._lm_output_states = [None] * (self._NUM_APPENDED_MASKS_MAX - self._NUM_APPENDED_MASKS_MIN + 1)
 
         # mem_length - _NUM_APPENDED_MASKS_MAX because we will always append up to _NUM_APPENDED_MASKS_MAX [MASK]
@@ -53,11 +54,11 @@ class BertWordPredictor(IWordPredictor):
             token_ids_to_feed = self._token_ids_memory.retrieve() + [self._tokenizer.mask_token_id] * (self._NUM_APPENDED_MASKS_MIN + n)
 
             # Convert to tensor and push to GPU
-            tokens_tensor = torch.tensor([token_ids_to_feed]).to("cuda")
+            tokens_tensor = torch.tensor([token_ids_to_feed]).to(self._device)
 
             # BERT uses A/B segments.  We have to assign the tokens to the A or B segment.
             segment_ids = [segment_id] * len(token_ids_to_feed)
-            segments_tensor = torch.tensor([segment_ids]).to("cuda")
+            segments_tensor = torch.tensor([segment_ids]).to(self._device)
 
             # Feed forward all the tokens
             with torch.no_grad():   # todo: performance: repeated context creation/destruction

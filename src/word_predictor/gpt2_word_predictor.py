@@ -5,13 +5,14 @@ from src.util.rotating_sequence import RotatingSequence
 
 
 class Gpt2WordPredictor(IWordPredictor):
-    def __init__(self, tokenizer, model, use_past=False, mem_length=256):
+    def __init__(self, tokenizer, model, device=None, use_past=False, mem_length=256):
         """
         use_past=True will speed up inference at the cost of higher memory consumption.  Set to False to avoid out of
         memory errors occurring after repeated forward feeds to the model.
         """
         self._tokenizer = tokenizer
         self._lm = model
+        self._device = device
         self._past = None
         self._model_output = None
 
@@ -33,13 +34,13 @@ class Gpt2WordPredictor(IWordPredictor):
         tokens = self._tokenizer.encode(text, add_prefix_space=prefix_space)
 
         if self._use_past:
-            tokens_tensor = torch.tensor([tokens]).to("cuda")
+            tokens_tensor = torch.tensor([tokens]).to(self._device)
             self._model_output, self._past = self._lm(tokens_tensor, past=self._past)
         else:
             for t in tokens:
                 self._tokens_history.insert(t)
             with torch.no_grad():
-                tokens_tensor = torch.tensor([self._tokens_history.retrieve()]).to("cuda")
+                tokens_tensor = torch.tensor([self._tokens_history.retrieve()]).to(self._device)
                 self._model_output = self._lm(tokens_tensor)
 
     def top_n_next(self, n):

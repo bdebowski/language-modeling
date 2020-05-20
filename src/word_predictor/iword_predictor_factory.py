@@ -25,62 +25,62 @@ class IWordPredictorFactory:
             ModelName.GPT2_LARGE: IWordPredictorFactory._create_gpt2_large,
             ModelName.GPT2_XLARGE: IWordPredictorFactory._create_gpt2_xlarge}
 
-    def create_from_name(self, model_name: ModelName):
+    def create_from_name(self, model_name: ModelName, device=None):
         """
         Returns an IWordPredictor model for the model name specified.
         """
-        return self._CREATION_FXS[model_name]()
+        return self._CREATION_FXS[model_name](device)
 
     @staticmethod
-    def _create_bert_uncased():
+    def _create_bert_uncased(device):
         tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
         model = BertForMaskedLM.from_pretrained("bert-base-uncased")
         model.eval()
-        model.to("cuda")
+        model.to(device)
 
-        return BertWordPredictor(tokenizer, model, mem_length=256)
+        return BertWordPredictor(tokenizer, model, device=device, mem_length=256)
 
     @staticmethod
-    def _create_bert_large_cased():
+    def _create_bert_large_cased(device):
         tokenizer = BertTokenizer.from_pretrained("bert-large-cased")
         model = BertForMaskedLM.from_pretrained("bert-large-cased")
         model.eval()
-        model.to("cuda")
+        model.to(device)
 
-        return BertWordPredictor(tokenizer, model, mem_length=256)
+        return BertWordPredictor(tokenizer, model, device=device, mem_length=256)
 
     @staticmethod
-    def _create_gpt2():
+    def _create_gpt2(device):
         tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
         model = GPT2LMHeadModel.from_pretrained("gpt2")
         model.eval()
-        model.to("cuda")
+        model.to(device)
 
-        return Gpt2WordPredictor(tokenizer, model)
+        return Gpt2WordPredictor(tokenizer, model, device=device)
 
     @staticmethod
-    def _create_gpt2_medium():
+    def _create_gpt2_medium(device):
         tokenizer = GPT2Tokenizer.from_pretrained("gpt2-medium")
         model = GPT2LMHeadModel.from_pretrained("gpt2-medium")
         model.eval()
-        model.to("cuda")
+        model.to(device)
 
-        return Gpt2WordPredictor(tokenizer, model)
+        return Gpt2WordPredictor(tokenizer, model, device=device)
 
     @staticmethod
-    def _create_gpt2_large():
+    def _create_gpt2_large(device):
         tokenizer = GPT2Tokenizer.from_pretrained("gpt2-large")
         model = GPT2LMHeadModel.from_pretrained("gpt2-large")
         model.eval()
-        model.to("cuda")
+        model.to(device)
 
-        return Gpt2WordPredictor(tokenizer, model)
+        return Gpt2WordPredictor(tokenizer, model, device=device)
 
     @staticmethod
-    def _create_gpt2_xlarge():
+    def _create_gpt2_xlarge(device):
         tokenizer = GPT2Tokenizer.from_pretrained("gpt2-xl")
         model = GPT2LMHeadModel.from_pretrained("gpt2-xl")
         model.eval()
-        model.to("cuda")
+        model.to(device)
 
-        return Gpt2WordPredictor(tokenizer, model)
+        return Gpt2WordPredictor(tokenizer, model, device=device)

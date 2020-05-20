@@ -17,17 +17,17 @@ class PredictWordProg:
         while True:
             # read text from user and feed to model
             word_predictor.feed(self._read_user_input())
+            for i in range(100):
+                # pick how many sentences to generate
+                num_sentences = 2
 
-            # pick how many sentences to generate
-            num_sentences = 2
+                sentences = []
+                for i in range(num_sentences):
+                    # generate sentence and add to list of sentences to display
+                    sentences.append(self._generate_sentence(word_predictor))
 
-            sentences = []
-            for i in range(num_sentences):
-                # generate sentence and add to list of sentences to display
-                sentences.append(self._generate_sentence(word_predictor))
-
-            # add sentences to display
-            self._display(sentences)
+                # add sentences to display
+                self._display(sentences)
 
     @staticmethod
     def _display(sentences):
@@ -70,4 +70,4 @@ class PredictWordProg:
 
 
 if __name__ == "__main__":
-    PredictWordProg().run(IWordPredictorFactory().create_from_name(ModelName.GPT2_LARGE))
+    PredictWordProg().run(IWordPredictorFactory().create_from_name(ModelName.GPT2_LARGE, device="cpu"))
